@@ -1,0 +1,145 @@
+package bullscows;
+
+import java.util.*;
+
+public class Main {
+    public static int grader(String rnd, String guess) {
+        String code = rnd;
+        String[] guessNumbers = guess.split("");
+        String[] rndNumbers = rnd.split("");
+        int bulls = 0;
+        int cows = 0;
+        for (int i = 0; i < guessNumbers.length; i++) {
+            for (int j = 0; j < rndNumbers.length; j++) {
+                if (i == j && guessNumbers[i].equals(rndNumbers[j])) {
+                    bulls++;
+                } else if (i != j && guessNumbers[i].equals(rndNumbers[j])) {
+                    cows++;
+                }
+            }
+        }
+        if (bulls != 0 && cows != 0) {
+            System.out.printf("Grade: %d bull(s) and %d cow(s)", bulls, cows);
+        } else if (bulls == 0 && cows != 0) {
+            System.out.printf("Grade: %d cow(s)", cows);
+        } else if (bulls != 0 && cows == 0) {
+            System.out.printf("Grade: %d bull(s)", bulls);
+        } else {
+            System.out.printf("Grade: None");
+        }
+        return bulls;
+    }
+
+    public static void game() {
+        String s = "";
+        System.out.println("Please, enter the secret code's length:");
+        Scanner scanner = new Scanner(System.in);
+        int length = 0;
+        try {
+            s = scanner.nextLine();
+            length = Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+            System.out.println("Error: \"" + s + "\" isn't a valid number.");
+            return;
+        }
+        if (length <= 0) {
+            System.out.println("Error: minimum possible length of the code is 1.");
+            return;
+        }
+        if (length > 36) {
+            System.out.println("Error: maximum possible length of the code is 36.");
+            return;
+        }
+        System.out.println("Input the number of possible symbols in the code:");
+        int kol = 0;
+        try {
+            s = scanner.nextLine();
+            kol = Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+            System.out.println("Error: \"" + s + "\" isn't a valid number.");
+            return;
+        }
+        if (kol <= 0) {
+            System.out.println("Error: maximum number of possible symbols in the code is 1 (0).");
+            return;
+        }
+        if (kol > 36) {
+            System.out.println("Error: maximum number of possible symbols in the code is 36 (0-9, a-z).");
+            return;
+        }
+        if (kol < length) {
+            System.out.printf("Error: it's not possible to generate a code with a length of %d with %d unique symbols.", length, kol);
+            return;
+        }
+
+        System.out.print("The secret is prepared: ");
+        for (int i = 0; i < length; i++) {
+            System.out.print("*");
+        }
+        if (kol <= 10) {
+            System.out.println(" (0-" + (kol - 1) + ").");
+        } else if (kol == 11) {
+            System.out.println(" (0-9, a");
+        } else {
+            char letter = 'a';
+            int kol1 = kol - 10 - 1;
+            while (kol1 != 0) {
+                letter++;
+                kol1--;
+            }
+            System.out.println(" (0-9, a-" + letter + ").");
+        }
+        String number = generateNumber(length, kol);
+        //String number = "93b4";
+        int count = 0;
+        int bulls = 0;
+        if (number != null) {
+            System.out.print("Okay, let's start a game!");
+            while (bulls != length) {
+                System.out.printf("\nTurn %d:\n", count + 1);
+                String guess = scanner.nextLine();
+                bulls = grader(number, guess);
+                count++;
+            }
+            System.out.println("\nCongratulations! You guessed the secret code.");
+        } else {
+            System.out.printf("Error: can't generate a secret number with a length of %d because there aren't enough unique digits.", length);
+        }
+    }
+
+    public static void main(String[] args) {
+        game();
+    }
+
+    public static String generateNumber(int length, int kol) {
+        List<String> DIGITS = new ArrayList<>(Arrays.asList("0", "1", "2", "3", "4", "5", "6", "7", "8", "9"));
+        List<String> LETTERS = new ArrayList<>();
+        for (char i = 'a'; i <= 'z'; i++) {
+            LETTERS.add(Character.toString(i));
+        }
+        if (length <= kol && length > 0) {
+            List<String> HELPER = new ArrayList<>();
+            if (kol <= 10) {
+                HELPER = DIGITS;
+            } else {
+                HELPER.addAll(DIGITS);
+                HELPER.addAll(LETTERS.subList(0, kol - 10));
+            }
+            List<String> shuffledDigits = new ArrayList<>(HELPER);
+            Collections.shuffle(shuffledDigits);
+            if (shuffledDigits.get(0).equals("0")) {
+                Collections.swap(shuffledDigits, 0, shuffledDigits.size() - 1);
+            }
+            if (length == 1) {
+                return shuffledDigits.get(0);
+            }
+            StringBuilder result = new StringBuilder();
+            for (String i:
+                    shuffledDigits.subList(0, length)) {
+                result.append(i);
+            }
+            return result.toString();
+        }
+        return null;
+    }
+}
